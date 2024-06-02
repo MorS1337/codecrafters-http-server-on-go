@@ -37,7 +37,7 @@ func main() {
 	if req.URL.Path == "/" {
 		_, err = conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
 	} else {
-		_, err = conn.Write([]byte("HTTP/1.1 404 NOT FOUND\r\n\r\n"))
+		_, err = conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
 	}
 
 }
