@@ -62,6 +62,21 @@ func HandleConnection(conn net.Conn) {
 
 	if strings.HasPrefix(req.URL.Path, "/user-agent") {
 		uaStr := req.Header["User-Agent"][0]
-		fmt.Println("User-Agent is: ", uaStr)
+		response := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(uaStr), uaStr)
+		_, err := conn.Write([]byte(response))
+		if err != nil {
+			fmt.Println("Error writing response: ", err.Error())
+		}
+	} else if req.URL.Path == "/" {
+		_, err := conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+		if err != nil {
+			fmt.Println("Error writing response: ", err.Error())
+		}
+
+	} else {
+		_, err := conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
+		if err != nil {
+			fmt.Println("Error writing response: ", err.Error())
+		}
 	}
 }
