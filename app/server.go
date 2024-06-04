@@ -39,21 +39,14 @@ func HandleConnection(conn net.Conn) {
 		fmt.Println("Error reading request: ", err.Error())
 		return
 	}
+	var response string
 
 	if strings.HasPrefix(req.URL.Path, "/echo/") {
 		echoStr := strings.TrimPrefix(req.URL.Path, "/echo/")
-		response := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(echoStr), echoStr)
-		_, err := conn.Write([]byte(response))
-		if err != nil {
-			fmt.Println("Error writing response: ", err.Error())
-		}
+		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(echoStr), echoStr)
 	} else if strings.HasPrefix(req.URL.Path, "/user-agent") {
 		uaStr := req.Header["User-Agent"][0]
-		response := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(uaStr), uaStr)
-		_, err := conn.Write([]byte(response))
-		if err != nil {
-			fmt.Println("Error writing response: ", err.Error())
-		} 
+		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(uaStr), uaStr)
 	} else if strings.HasPrefix(req.URL.Path, "/files/") {
 		dir := os.Args[2]
 		fileStr := strings.TrimPrefix(req.URL.Path, "/files/")
@@ -62,29 +55,22 @@ func HandleConnection(conn net.Conn) {
 			if err != nil {
 				fmt.Println("Error writing file: ", err.Error())
 			}
-		}
+			response = "HTTP/1.1 201 Created\r\n\r\n"
+		} else {
 		data, err := os.ReadFile(dir + fileStr)
 		if err != nil {
-			_, err := conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
-			if err != nil {
-				fmt.Println("Error writing response: ", err.Error())
-			}
+			response = "HTTP/1.1 404 Not Found\r\n\r\n"
 		} else {
-			response := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: %d\r\n\r\n%s", len(data), data)
-			_, err := conn.Write([]byte(response))
-			if err != nil {
-				fmt.Println("Error writing response: ", err.Error())
-			}
+			response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: %d\r\n\r\n%s", len(data), data)
 		}
+	}
 	} else if req.URL.Path == "/" {
-		_, err := conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
-		if err != nil {
-			fmt.Println("Error writing response: ", err.Error())
-		}
+		response = "HTTP/1.1 200 OK\r\n\r\n"
 	} else {
-		_, err := conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
-		if err != nil {
-			fmt.Println("Error writing response: ", err.Error())
-		}
+		response = "HTTP/1.1 404 Not Found\r\n\r\n"
+	}
+	_, err = conn.Write([]byte(response))
+	if err != nil {
+		fmt.Println("Error writing response: ", err.Error())
 	}
 }
