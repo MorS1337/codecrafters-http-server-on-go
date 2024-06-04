@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding"
 	"fmt"
 	"io"
 	"net"
@@ -44,8 +45,8 @@ func HandleConnection(conn net.Conn) {
 
 	if strings.HasPrefix(req.URL.Path, "/echo/") {
 		echoStr := strings.TrimPrefix(req.URL.Path, "/echo/")
-		contentEncStr := req.Header["Accept-Encoding"][0]
-		if contentEncStr != "invalid-encoding" {
+		contentEncStr := CheckEncoding(req)
+		if contentEncStr != "invalid-encoding" && contentEncStr != "" {
 			response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\nContent-Encoding: %s\r\n\r\n%s", len(echoStr), contentEncStr, echoStr)
 		} else {
 			response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(echoStr), echoStr)
@@ -86,4 +87,11 @@ func ConvertBody(body io.ReadCloser) (string, error) {
 	buf := new(strings.Builder)
 	_, err := io.Copy(buf, body)
 	return buf.String(), err
+}
+
+func CheckEncoding(req *http.Request) string {
+	if len(req.Header) > 1 {
+		return req.Header["Accept-Encoding"][0]
+	}
+	return ""
 }
