@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -49,15 +50,21 @@ func HandleConnection(conn net.Conn) {
 		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(uaStr), uaStr)
 	} else if strings.HasPrefix(req.URL.Path, "/files/") {
 		dir := os.Args[2]
-		fileStr := strings.TrimPrefix(req.URL.Path, "/files/")
+		fileName := strings.TrimPrefix(req.URL.Path, "/files/")
 		if req.Method == "POST" {
-			err := os.WriteFile(dir + fileStr, []byte(fileStr), 0644)
+			buf := new(strings.Builder)
+			_, err := io.Copy(buf, req.Body)
+			if err != nil {
+				fmt.Println("Error copying data: ", err.Error())
+			} else {
+			err := os.WriteFile(dir + fileName, []byte(buf.String()), 0644)
 			if err != nil {
 				fmt.Println("Error writing file: ", err.Error())
 			}
 			response = "HTTP/1.1 201 Created\r\n\r\n"
+		}	
 		} else {
-		data, err := os.ReadFile(dir + fileStr)
+		data, err := os.ReadFile(dir + fileName)
 		if err != nil {
 			response = "HTTP/1.1 404 Not Found\r\n\r\n"
 		} else {
