@@ -59,4 +59,9 @@ func HandleConnection(conn net.Conn) {
 			fmt.Println("Error writing response: ", err.Error())
 		}
 	}
+
+	if strings.HasPrefix(req.URL.Path, "/user-agent") {
+		uaStr := req.Header["User-Agent"]
+		fmt.Println("User-Agent is: ", uaStr)
+	}
 }
