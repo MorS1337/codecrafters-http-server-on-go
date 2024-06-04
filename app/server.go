@@ -36,7 +36,7 @@ func HandleConnection(conn net.Conn) {
 
 	req, err := http.ReadRequest(bufio.NewReader(conn))
 	if err != nil {
-		fmt.Println("Error reading request", err.Error())
+		fmt.Println("Error reading request: ", err.Error())
 		return
 	}
 
@@ -54,6 +54,23 @@ func HandleConnection(conn net.Conn) {
 		if err != nil {
 			fmt.Println("Error writing response: ", err.Error())
 		} 
+	} else if strings.HasPrefix(req.URL.Path, "/file/") {
+		dir := os.Args[2]
+		fileStr := strings.TrimPrefix(req.URL.Path, "/file/")
+		fmt.Print(fileStr)
+		data, err := os.ReadFile(dir + fileStr)
+		if err != nil {
+			_, err := conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
+			if err != nil {
+				fmt.Println("Error writing response: ", err.Error())
+			}
+		} else {
+			response := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(data), data)
+			_, err := conn.Write([]byte(response))
+			if err != nil {
+				fmt.Println("Error writing response: ", err.Error())
+			}
+		}
 	} else if req.URL.Path == "/" {
 		_, err := conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
 		if err != nil {
