@@ -61,7 +61,7 @@ func HandleConnection(conn net.Conn) {
 	}
 
 	if strings.HasPrefix(req.URL.Path, "/user-agent") {
-		uaStr := req.Header["User-Agent"]
+		uaStr := req.Header["User-Agent"][0]
 		fmt.Println("User-Agent is: ", uaStr)
 	}
 }
