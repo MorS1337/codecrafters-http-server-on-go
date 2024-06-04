@@ -44,7 +44,12 @@ func HandleConnection(conn net.Conn) {
 
 	if strings.HasPrefix(req.URL.Path, "/echo/") {
 		echoStr := strings.TrimPrefix(req.URL.Path, "/echo/")
-		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(echoStr), echoStr)
+		contentEncStr := req.Header["Accept-Encoding"][0]
+		if contentEncStr != "invalid-encoding" {
+			response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\nContent-Encoding: %s\r\n\r\n%s", len(echoStr), contentEncStr, echoStr)
+		} else {
+			response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(echoStr), echoStr)
+		}
 	} else if strings.HasPrefix(req.URL.Path, "/user-agent") {
 		uaStr := req.Header["User-Agent"][0]
 		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(uaStr), uaStr)
@@ -52,17 +57,12 @@ func HandleConnection(conn net.Conn) {
 		dir := os.Args[2]
 		fileName := strings.TrimPrefix(req.URL.Path, "/files/")
 		if req.Method == "POST" {
-			buf := new(strings.Builder)
-			_, err := io.Copy(buf, req.Body)
-			if err != nil {
-				fmt.Println("Error copying data: ", err.Error())
-			} else {
-			err := os.WriteFile(dir + fileName, []byte(buf.String()), 0644)
+			content, _ := ConvertBody(req.Body)
+			err := os.WriteFile(dir + fileName, []byte(content), 0644)
 			if err != nil {
 				fmt.Println("Error writing file: ", err.Error())
 			}
 			response = "HTTP/1.1 201 Created\r\n\r\n"
-		}	
 		} else {
 		data, err := os.ReadFile(dir + fileName)
 		if err != nil {
@@ -80,4 +80,10 @@ func HandleConnection(conn net.Conn) {
 	if err != nil {
 		fmt.Println("Error writing response: ", err.Error())
 	}
+}
+
+func ConvertBody(body io.ReadCloser) (string, error) {
+	buf := new(strings.Builder)
+	_, err := io.Copy(buf, body)
+	return buf.String(), err
 }
