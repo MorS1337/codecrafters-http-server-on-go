@@ -60,7 +60,7 @@ func HandleConnection(conn net.Conn) {
 		}
 	}
 
-	if strings.HasPrefix(req.URL.Path, "/user-agent") {
+	if strings.HasPrefix(req.URL.Path, "user-agent") {
 		uaStr := req.Header["User-Agent"][0]
 		response := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(uaStr), uaStr)
 		_, err := conn.Write([]byte(response))
