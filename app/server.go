@@ -65,7 +65,7 @@ func HandleConnection(conn net.Conn) {
 				fmt.Println("Error writing response: ", err.Error())
 			}
 		} else {
-			response := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(data), data)
+			response := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: %d\r\n\r\n%s", len(data), data)
 			_, err := conn.Write([]byte(response))
 			if err != nil {
 				fmt.Println("Error writing response: ", err.Error())
