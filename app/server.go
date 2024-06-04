@@ -54,7 +54,7 @@ func HandleConnection(conn net.Conn) {
 		if err != nil {
 			fmt.Println("Error writing response: ", err.Error())
 		} 
-	} else if strings.HasPrefix(req.URL.Path, "/file/") {
+	} else if strings.HasPrefix(req.URL.Path, "/files/") {
 		dir := os.Args[2]
 		fileStr := strings.TrimPrefix(req.URL.Path, "/file/")
 		fmt.Print(fileStr)
