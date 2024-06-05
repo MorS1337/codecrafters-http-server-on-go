@@ -100,7 +100,8 @@ func CheckEncoding(req *http.Request) string {
 }
 
 func CheckGzip(headers []string) bool {
-	for _, header := range headers {
+	arr := strings.Split(headers[0], " ")
+	for _, header := range arr {
 		if header == "gzip" {
 			return true
 		}
