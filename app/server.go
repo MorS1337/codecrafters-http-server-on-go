@@ -46,7 +46,6 @@ func HandleConnection(conn net.Conn) {
 		echoStr := strings.TrimPrefix(req.URL.Path, "/echo/")
 		contentEncStr := CheckEncoding(req)
 		fmt.Println("Content Encoding: ", contentEncStr)
-		fmt.Println("HOW: ", strings.Split(req.Header["Accept-Encoding"][0], ","))
 		if contentEncStr != "invalid-encoding" && contentEncStr != "" {
 			response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\nContent-Encoding: %s\r\n\r\n%s", len(echoStr), contentEncStr, echoStr)
 		} else {
@@ -91,20 +90,12 @@ func ConvertBody(body io.ReadCloser) (string, error) {
 }
 
 func CheckEncoding(req *http.Request) string {
-	if len(strings.Split(req.Header["Accept-Encoding"][0], " ")) == 1 {
-		return req.Header["Accept-Encoding"][0]
-	} else if len(req.Header) > 1 && CheckGzip(req.Header["Accept-Encoding"]) {
-		return "gzip"
-	}
-	return ""
-}
-
-func CheckGzip(headers []string) bool {
-	arr := strings.Split(headers[0], " ")
-	for _, header := range arr {
-		if header == "gzip" {
-			return true
+	encodings := req.Header.Get("Accept-Encoding")
+	encList := strings.Split(encodings, ", ")
+	for _, enc := range encList {
+		if enc == "gzip" {
+			return "gzip"
 		}
 	}
-	return false
+	return ""
 }
