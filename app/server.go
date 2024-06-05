@@ -89,8 +89,19 @@ func ConvertBody(body io.ReadCloser) (string, error) {
 }
 
 func CheckEncoding(req *http.Request) string {
-	if len(req.Header) > 0 {
+	if len(req.Header) == 1 {
 		return req.Header["Accept-Encoding"][0]
+	} else if len(req.Header) > 1 && CheckGzip(req.Header["Accept-Encoding"]) {
+		return "gzip"
 	}
 	return ""
+}
+
+func CheckGzip(headers []string) bool {
+	for _, header := range headers {
+		if header == "gzip" {
+			return true
+		}
+	}
+	return false
 }
