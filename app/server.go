@@ -46,7 +46,7 @@ func HandleConnection(conn net.Conn) {
 		echoStr := strings.TrimPrefix(req.URL.Path, "/echo/")
 		contentEncStr := CheckEncoding(req)
 		fmt.Println("Content Encoding: ", contentEncStr)
-		fmt.Println("HOW: ", strings.Split(req.Header["Accept-Encoding"][0], " "))
+		fmt.Println("HOW: ", strings.Split(req.Header["Accept-Encoding"][0], ","))
 		if contentEncStr != "invalid-encoding" && contentEncStr != "" {
 			response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\nContent-Encoding: %s\r\n\r\n%s", len(echoStr), contentEncStr, echoStr)
 		} else {
