@@ -118,8 +118,16 @@ func HandleFiles(req *http.Request) string {
 			if err != nil {
 				fmt.Println("Error writing file: ", err.Error())
 			}
+			return "HTTP/1.1 201 Created\r\n\r\n"
+		} else {
+			data, err := os.ReadFile(dir + fileName)
+			if err != nil {
+				return "HTTP/1.1 404 Not Found\r\n\r\n"
+			} else {
+				return fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: %d\r\n\r\n%s", len(data), data)
+			}
 		}
-	return "HTTP/1.1 201 Created\r\n\r\n"
+	
 }
 
 func CheckEncoding(req *http.Request) string {
