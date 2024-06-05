@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"compress/gzip"
+	"bytes"
 )
 
 func main() {
@@ -44,10 +46,20 @@ func HandleConnection(conn net.Conn) {
 
 	if strings.HasPrefix(req.URL.Path, "/echo/") {
 		echoStr := strings.TrimPrefix(req.URL.Path, "/echo/")
-		contentEncStr := CheckEncoding(req)
-		fmt.Println("Content Encoding: ", contentEncStr)
-		if contentEncStr != "invalid-encoding" && contentEncStr != "" {
-			response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\nContent-Encoding: %s\r\n\r\n%s", len(echoStr), contentEncStr, echoStr)
+		acceptEncoding := CheckEncoding(req)
+		if strings.Contains(acceptEncoding, "gzip") {
+			var buf bytes.Buffer
+			gz := gzip.NewWriter(&buf)
+			if _, err := gz.Write([]byte(echoStr)); err != nil {
+				fmt.Println("Error writing gzip data: ", err.Error())
+				return
+			}
+			if err := gz.Close(); err != nil {
+				fmt.Println("Error closing gzip writer: ", err.Error())
+				return
+			}
+			gzipData := buf.Bytes()
+			response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(gzipData), gzipData)
 		} else {
 			response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(echoStr), echoStr)
 		}
